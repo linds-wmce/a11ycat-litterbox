@@ -1,6 +1,8 @@
 # 🐱 a11ycat-litterbox
 
-A lightweight accessibility auditing API that fetches web pages and runs [axe-core](https://github.com/dequelabs/axe-core) accessibility tests on them.
+Backend API for **a11ycat** - A lightweight accessibility auditing service that fetches web pages and runs [axe-core](https://github.com/dequelabs/axe-core) accessibility tests on them.
+
+**Live API:** `https://a11ycat-litterbox-production.up.railway.app`
 
 ## What It Does
 
@@ -16,19 +18,9 @@ This service provides a simple REST API endpoint that:
 npm install
 ```
 
-## Usage
-
-Start the server:
-
-```bash
-npm start
-```
-
-The server will run on `http://localhost:4000`
-
 ## API Endpoint
 
-### POST `/audit`
+### POST `https://a11ycat-litterbox-production.up.railway.app/audit`
 
 Audit a web page for accessibility issues.
 
@@ -65,7 +57,7 @@ Audit a web page for accessibility issues.
 ### Using cURL
 
 ```bash
-curl -X POST http://localhost:4000/audit \
+curl -X POST https://a11ycat-litterbox-production.up.railway.app/audit \
   -H "Content-Type: application/json" \
   -d '{"url": "https://example.com"}'
 ```
@@ -73,7 +65,7 @@ curl -X POST http://localhost:4000/audit \
 ### Using JavaScript (fetch)
 
 ```javascript
-const response = await fetch('http://localhost:4000/audit', {
+const response = await fetch('https://a11ycat-litterbox-production.up.railway.app/audit', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ url: 'https://example.com' })
@@ -82,6 +74,17 @@ const response = await fetch('http://localhost:4000/audit', {
 const results = await response.json();
 console.log('Accessibility violations:', results.violations);
 ```
+
+## Local Development
+
+To run locally:
+
+```bash
+npm install
+npm start
+```
+
+The server will run on `http://localhost:4000`
 
 ## Dependencies
 
@@ -94,36 +97,50 @@ console.log('Accessibility violations:', results.violations);
 
 ## Deployment
 
-To make this API publicly accessible, you'll need to deploy it to a hosting service. Here are some popular options:
+This API is currently deployed on **Railway** at:
+`https://a11ycat-litterbox-production.up.railway.app`
 
-### Option 1: Railway (Recommended)
+### Updating the Deployment
 
-1. Sign up at [Railway.app](https://railway.app)
-2. Connect your GitHub repository
-3. Railway will auto-detect Node.js and deploy
-4. Your API will be available at `https://your-app.railway.app`
+The app automatically redeploys when you push to the `main` branch on GitHub.
 
-### Option 2: Render
+To manually deploy updates:
 
-1. Sign up at [Render.com](https://render.com)
-2. Create a new Web Service
-3. Connect your GitHub repository
-4. Set build command: `npm install`
-5. Set start command: `npm start`
-6. Your API will be available at `https://your-app.onrender.com`
+```bash
+# Make your changes, then commit and push
+git add .
+git commit -m "Your update message"
+git push origin main
+```
 
-### Option 3: Fly.io
+Or deploy directly using Railway CLI:
 
-1. Install Fly CLI: `brew install flyctl` (Mac) or see [Fly.io docs](https://fly.io/docs/hands-on/install-flyctl/)
-2. Run `fly launch` in your project directory
-3. Run `fly deploy`
-4. Your API will be available at `https://your-app.fly.dev`
+```bash
+railway up
+```
+
+### Railway CLI Setup
+
+If you need to set up Railway CLI:
+
+```bash
+# Install Railway CLI
+npm install -g @railway/cli
+
+# Login to Railway
+railway login
+
+# Link to existing project (in this directory)
+railway link
+
+# Deploy
+railway up
+```
 
 ### Environment Variables
 
-For production, you may want to set:
-- `PORT` - The port to run on (defaults to 4000)
-- Add any CORS origins you want to whitelist
+The following environment variables are automatically configured on Railway:
+- `PORT` - Automatically set by Railway (defaults to 4000 locally)
 
 ## Development
 
