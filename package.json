@@ -1,0 +1,30 @@
+{
+  "name": "a11ycat-litterbox",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/linds-wmce/a11ycat-litterbox.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/linds-wmce/a11ycat-litterbox/issues"
+  },
+  "homepage": "https://github.com/linds-wmce/a11ycat-litterbox#readme",
+  "dependencies": {
+    "axe-core": "^4.11.0",
+    "canvas": "^3.2.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "jsdom": "^27.0.0",
+    "node-fetch": "^3.3.2"
+  }
+}
