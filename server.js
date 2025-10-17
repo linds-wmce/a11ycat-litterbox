@@ -19,10 +19,37 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Helper function to normalize URLs
+function normalizeUrl(url) {
+  if (!url) return null;
+  
+  // Trim whitespace
+  url = url.trim();
+  
+  // If no protocol is specified, add https://
+  if (!/^https?:\/\//i.test(url)) {
+    url = 'https://' + url;
+  }
+  
+  // Validate the URL
+  try {
+    const parsedUrl = new URL(url);
+    return parsedUrl.href;
+  } catch {
+    return null;
+  }
+}
+
 app.post("/audit", async (req, res) => {
   try {
-    const { url } = req.body;
+    let { url } = req.body;
     if (!url) return res.status(400).json({ error: "URL is required" });
+
+    // Normalize the URL
+    url = normalizeUrl(url);
+    if (!url) {
+      return res.status(400).json({ error: "Invalid URL format" });
+    }
 
     // fetch the HTML
     const response = await fetch(url);
@@ -77,7 +104,7 @@ app.post("/audit", async (req, res) => {
 
     res.json(results);
   } catch (error) {
-    const errorId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const errorId = `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
     console.error("🐾 Audit failed:", errorId, error);
     res.status(500).json({ 
       id: errorId,
