@@ -28,43 +28,51 @@ app.post("/audit", async (req, res) => {
     const response = await fetch(url);
     const html = await response.text();
 
-    // load into jsdom with script execution enabled
+    // Create a simple jsdom without scripts
     const dom = new JSDOM(html, { 
       url,
-      runScripts: "dangerously",
-      resources: "usable",
-      beforeParse(window) {
-        // Inject axe-core before the page parses
-        const script = window.document.createElement("script");
-        script.textContent = axeSource;
-        window.document.head.appendChild(script);
-      }
+      runScripts: "outside-only"
     });
     
     const { window } = dom;
+    const { document } = window;
 
-    // Wait a bit for the page to settle and axe to initialize
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Polyfill/stub MutationObserver to prevent errors
+    window.MutationObserver = class MutationObserver {
+      constructor(callback) {
+        this.callback = callback;
+      }
+      observe() {}
+      disconnect() {}
+      takeRecords() { return []; }
+    };
 
-    // Check if axe is available
-    if (typeof window.axe === 'undefined') {
-      throw new Error('Axe-core failed to load in jsdom');
-    }
+    // Execute axe-core in the window context using vm.runInContext
+    const vm = await import('vm');
+    const context = vm.createContext(window);
+    vm.runInContext(axeSource, context);
+    
+    // Get axe from the window
+    const axe = window.axe;
 
-    // run axe in the jsdom context
+    // Configure axe to work better with jsdom
+    axe.configure({
+      branding: { application: 'a11ycat' },
+      noHtml: false
+    });
+
+    // Run axe-core analysis
     const results = await new Promise((resolve, reject) => {
-      // Set up the callback in the window context
-      window._axeCallback = function(err, results) {
+      axe.run(document, {
+        // Disable rules that require MutationObserver or problematic APIs
+        runOnly: {
+          type: 'tag',
+          values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice']
+        }
+      }, (err, results) => {
         if (err) reject(err);
         else resolve(results);
-      };
-      
-      // Run axe using window.eval to execute in the right context
-      try {
-        window.eval('axe.run(document, window._axeCallback);');
-      } catch (err) {
-        reject(err);
-      }
+      });
     });
 
     res.json(results);
