@@ -93,7 +93,6 @@ The server will run on `http://localhost:4000`
 - **node-fetch** - Fetch web pages
 - **jsdom** - Virtual DOM for running axe-core
 - **axe-core** - Accessibility testing engine
-- **canvas** - Required by jsdom for canvas element support
 
 ## Deployment
 
