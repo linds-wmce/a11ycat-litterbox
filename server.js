@@ -28,33 +28,40 @@ app.post("/audit", async (req, res) => {
     const response = await fetch(url);
     const html = await response.text();
 
-    // load into jsdom
+    // load into jsdom with script execution enabled
     const dom = new JSDOM(html, { 
       url,
       runScripts: "dangerously",
-      resources: "usable"
+      resources: "usable",
+      beforeParse(window) {
+        // Inject axe-core before the page parses
+        const script = window.document.createElement("script");
+        script.textContent = axeSource;
+        window.document.head.appendChild(script);
+      }
     });
+    
     const { window } = dom;
 
-    // Inject axe-core into the jsdom window
-    const scriptElement = window.document.createElement("script");
-    scriptElement.textContent = axeSource;
-    window.document.head.appendChild(scriptElement);
+    // Wait a bit for the page to settle and axe to initialize
+    await new Promise(resolve => setTimeout(resolve, 500));
 
-    // Wait for axe to be available
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Check if axe is available
+    if (typeof window.axe === 'undefined') {
+      throw new Error('Axe-core failed to load in jsdom');
+    }
 
-    // run axe in the jsdom context with proper callback handling
+    // run axe in the jsdom context
     const results = await new Promise((resolve, reject) => {
+      // Set up the callback in the window context
+      window._axeCallback = function(err, results) {
+        if (err) reject(err);
+        else resolve(results);
+      };
+      
+      // Run axe using window.eval to execute in the right context
       try {
-        // Set up callback in window context
-        window.axeCallback = (err, results) => {
-          if (err) reject(err);
-          else resolve(results);
-        };
-        
-        // Run axe
-        window.eval('axe.run(document, window.axeCallback)');
+        window.eval('axe.run(document, window._axeCallback);');
       } catch (err) {
         reject(err);
       }
